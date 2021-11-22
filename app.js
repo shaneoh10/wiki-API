@@ -15,8 +15,17 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static("public"));
 
+mongoose.connect(process.env.MONGODB_URI);
+
+const articleSchema = {
+    title: String,
+    content: String
+}
+
+const Article = mongoose.model('Article', articleSchema);
+
 //TODO
 
-app.listen(3000, function() {
+app.listen(3000, () => {
   console.log("Server started on port 3000");
 });
