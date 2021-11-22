@@ -15,6 +15,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static("public"));
 
+// ----------------------------- DATABASE SETUP & SCHEMA  
+
 mongoose.connect(process.env.MONGODB_URI);
 
 const articleSchema = {
@@ -26,15 +28,7 @@ const Article = mongoose.model('Article', articleSchema);
 
 // ----------------------------- ROUTES
 
-// app.get('/articles', (req, res) => {
-//     Article.find((err, foundArticles) => {
-//         if (!err) {
-//             res.send(foundArticles);
-//         } else {
-//             res.send(err);
-//         }
-//     });
-// });
+// ALL ARTICLES 
 
 app.route('/articles')
     .get((req, res) => {
@@ -70,30 +64,58 @@ app.route('/articles')
         });
     });
 
-// app.post('/articles', (req, res) => {
-//     const newArticle = new Article({
-//         title: req.body.title,
-//         content: req.body.content
-//     });
+// SPECIFIC ARTICLE 
 
-//     newArticle.save((err) => {
-//         if (!err) {
-//             res.send("Successfully added new article!");
-//         } else {
-//             res.send(err);
-//         }
-//     });
-// });
+app.route('/articles/:articleTitle')
+    .get((req, res) => {
+        Article.findOne({ title: req.params.articleTitle }, (err, foundArticle) => {
+            if (foundArticle) {
+                res.send(foundArticle);
+            } else {
+                res.send('No article matching that title found.')
+            }
+        });
+    })
+    .put((req, res) => {
+        Article.updateOne(
+            { title: req.params.articleTitle },
+            { $set: {title: req.body.title, content: req.body.content} },
+            { overwrite: true },
+            (err) => {
+                if (!err) {
+                    res.send('Successfully updated article');
+                } else {
+                    res.send(err);
+                }
+            }
+        );
+    })
+    .patch((req, res) => {
+        Article.updateOne(
+            { title: req.params.articleTitle },
+            { $set: req.body },
+            (err) => {
+                if(!err) {
+                    res.send('Successfully updated article');
+                } else {
+                    res.send(err);
+                }
+            }
+        );
+    })
+    .delete((req, res) => {
+        Article.deleteOne(
+            {title: req.params.articleTitle},
+            (err) => {
+                if (!err) {
+                    res.send('Successfully deleted article');
+                } else {
+                    res.send(err);
+                }
+            }
+        );
+    });
 
-// app.delete('/articles', (req, res) => {
-//     Article.deleteMany((err) => {
-//         if (!err) {
-//             res.send("Successfully deleted all articles.");
-//         } else {
-//             res.send(err);
-//         }
-//     });
-// });
 
 app.listen(3000, () => {
     console.log("Server started on port 3000");
